@@ -23,3 +23,7 @@ python3 shcheck2excel -i shcheck_results.json
 ````
   
 The output file will be an Excel file showing the results of the audit. 
+
+## Credits
+
+Many thanks to [michiiii](https://github.com/michiiii) for this beautiful helper script <3
