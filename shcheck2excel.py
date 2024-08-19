@@ -75,7 +75,7 @@ class ResponseHeaderAnalysisResult:
 ############################################
 #### Functions
 ############################################
-# Generate an function that takes the ResponseHeaderAnalysisResultsArr and renders the results in Excel
+# Generate a function that takes the ResponseHeaderAnalysisResultsArr and renders the results in Excel
 def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
     
     # get current path
@@ -92,23 +92,35 @@ def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
     # Add a bold format to use to highlight cells.
     bold = workbook.add_format({'bold': True})
 
-    # Write some data headers.
-    worksheet.write('B1', 'X-XSS-Protection header', bold)
-    worksheet.write('C1', 'X-Frame-Options header', bold)
-    worksheet.write('D1', 'X-Content-Type-Options header', bold)
-    worksheet.write('E1', 'Content-Security-Policy header', bold)
-    worksheet.write('F1', 'X-Permitted-Cross-Domain-Policies header', bold)
-    worksheet.write('G1', 'Referrer-Policy header', bold)
-    worksheet.write('H1', 'Strict-Transport-Security', bold)
-    worksheet.write('I1', 'Permissions-Policy header', bold)
-    worksheet.write('J1', 'Cross-Origin-Embedder-Policy header', bold)
-    worksheet.write('K1', 'Cross-Origin-Resource-Policy header', bold)
-    worksheet.write('L1', 'Cross-Origin-Opener-Policy header', bold)
-    worksheet.write('M1', 'Feature-Policy header', bold)
-    worksheet.write('N1', 'Expect-CT header', bold)
+    # Write some data headers in the new order and add full name as comments.
+    worksheet.write('A1', 'Target URL', bold)
+
+    headers = [
+        ('B1', 'HSTS', 'Strict-Transport-Security'),
+        ('C1', 'XFO', 'X-Frame-Options'),
+        ('D1', 'XCTO', 'X-Content-Type-Options'),
+        ('E1', 'CSP', 'Content-Security-Policy'),
+        ('F1', 'RP', 'Referrer-Policy'),
+        ('G1', 'PP', 'Permissions-Policy'),
+        ('H1', 'FP', 'Feature-Policy'),
+        ('I1', 'XSS', 'X-XSS-Protection'),
+        ('J1', 'XPCDP', 'X-Permitted-Cross-Domain-Policies'),
+        ('K1', 'COEP', 'Cross-Origin-Embedder-Policy'),
+        ('L1', 'CORP', 'Cross-Origin-Resource-Policy'),
+        ('M1', 'COOP', 'Cross-Origin-Opener-Policy'),
+        ('N1', 'Expect-CT', 'Expect-CT'),
+    ]
+
+    for cell, short_name, full_name in headers:
+        worksheet.write(cell, short_name, bold)
+        worksheet.write_comment(cell, full_name)
 
     # Set a filter on the first column to the last column
     worksheet.autofilter('A1:N1')
+
+    # Auto-adjust column widths
+    for i, header in enumerate(headers, start=1):
+        worksheet.set_column(i, i, len(header[1]) + 2)
 
     # Start from the first cell below the headers.
     row = 1
@@ -117,84 +129,37 @@ def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
     # Iterate over the data and write it out row by row.
     for result in ResponseHeaderAnalysisResultsArr:
         worksheet.write(row, col, result.url)
-        # Write the present headers of the x_xss_protection object
-        # if the header is present format the cell green
-        # if the header is not present format the cell red
-        if result.x_xss_protection["present"] == True:
-            worksheet.write(row, col + 1, result.x_xss_protection["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 1, result.x_xss_protection["present"], workbook.add_format({'bg_color': 'red'}))
-        
-        if result.x_frame_options["present"] == True:
-            worksheet.write(row, col + 2, result.x_frame_options["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 2, result.x_frame_options["present"], workbook.add_format({'bg_color': 'red'}))
 
-        if result.x_content_type_options["present"] == True:
-            worksheet.write(row, col + 3, result.x_content_type_options["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 3, result.x_content_type_options["present"], workbook.add_format({'bg_color': 'red'}))
-        
-        if result.content_security_policy["present"] == True:
-            worksheet.write(row, col + 4, result.content_security_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 4, result.content_security_policy["present"], workbook.add_format({'bg_color': 'red'}))
+        # Write each result with auto-adjusted height and width
+        data = [
+            result.strict_transport_security,
+            result.x_frame_options,
+            result.x_content_type_options,
+            result.content_security_policy,
+            result.referrer_policy,
+            result.permissions_policy,
+            result.feature_policy,
+            result.x_xss_protection,
+            result.x_permitted_cross_domain_policies,
+            result.cross_origin_embedder_policy,
+            result.cross_origin_resource_policy,
+            result.cross_origin_opener_policy,
+            result.expect_ct
+        ]
 
-        if result.x_permitted_cross_domain_policies["present"] == True:
-            worksheet.write(row, col + 5, result.x_permitted_cross_domain_policies["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 5, result.x_permitted_cross_domain_policies["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.referrer_policy["present"] == True:
-            worksheet.write(row, col + 6, result.referrer_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 6, result.referrer_policy["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.strict_transport_security["present"] == True:
-            worksheet.write(row, col + 7, result.strict_transport_security["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 7, result.strict_transport_security["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.permissions_policy["present"] == True:
-            worksheet.write(row, col + 8, result.permissions_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 8, result.permissions_policy["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.cross_origin_embedder_policy["present"] == True:
-            worksheet.write(row, col + 9, result.cross_origin_embedder_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 9, result.cross_origin_embedder_policy["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.cross_origin_resource_policy["present"] == True:
-            worksheet.write(row, col + 10, result.cross_origin_resource_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 10, result.cross_origin_resource_policy["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.cross_origin_opener_policy["present"] == True:
-            worksheet.write(row, col + 11, result.cross_origin_opener_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 11, result.cross_origin_opener_policy["present"], workbook.add_format({'bg_color': 'red'}))
-
-        if result.feature_policy["present"] == True:
-            worksheet.write(row, col + 12, result.feature_policy["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 12, result.feature_policy["present"], workbook.add_format({'bg_color': 'red'}))
-        
-        if result.expect_ct["present"] == True:
-            worksheet.write(row, col + 13, result.expect_ct["present"], workbook.add_format({'bg_color': 'green'}))
-        else:
-            worksheet.write(row, col + 13, result.expect_ct["present"], workbook.add_format({'bg_color': 'red'}))
+        for i, header_result in enumerate(data):
+            color = 'green' if header_result["present"] else 'red'
+            worksheet.write(row, col + 1 + i, header_result["present"], workbook.add_format({'bg_color': color}))
+            worksheet.set_row(row, None)  # Auto-adjust row height
 
         row += 1
-    
 
     ############################
     ## Present Headers Sheet ##
     ############################
 
     # Add a new worksheet to the workbook
-    worksheet = workbook.add_worksheet()
-    worksheet.name = "Present Headers"
+    worksheet = workbook.add_worksheet("Present Headers")
 
     # Set a filter on the first column
     worksheet.autofilter('A1:C1')
@@ -202,7 +167,7 @@ def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
     # Add a bold format to use to highlight cells.
     bold = workbook.add_format({'bold': True})
 
-    # First culumn is the URL
+    # First column is the URL
     # Second column is the Header
     # Third column is the Value
     worksheet.write('A1', 'URL', bold)
@@ -212,73 +177,71 @@ def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
     row = 1
     col = 0
 
-
-
     for result in ResponseHeaderAnalysisResultsArr:
         
         if result.x_xss_protection["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "X-XSS-Protection")
+            worksheet.write(row, col + 1, "XSS")
             worksheet.write(row, col + 2, result.x_xss_protection["value"])
             row += 1
 
         if result.x_frame_options["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "X-Frame-Options")
+            worksheet.write(row, col + 1, "XFO")
             worksheet.write(row, col + 2, result.x_frame_options["value"])
             row += 1
 
         if result.x_content_type_options["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "X-Content-Type-Options")
+            worksheet.write(row, col + 1, "XCTO")
             worksheet.write(row, col + 2, result.x_content_type_options["value"])
             row += 1
 
         if result.content_security_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Content-Security-Policy")
+            worksheet.write(row, col + 1, "CSP")
             worksheet.write(row, col + 2, result.content_security_policy["value"])
             row += 1
 
         if result.x_permitted_cross_domain_policies["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "X-Permitted-Cross-Domain-Policies")
+            worksheet.write(row, col + 1, "XPCDP")
             worksheet.write(row, col + 2, result.x_permitted_cross_domain_policies["value"])
             row += 1
 
         if result.referrer_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Referrer-Policy")
+            worksheet.write(row, col + 1, "RP")
             worksheet.write(row, col + 2, result.referrer_policy["value"])
             row += 1
         
         if result.strict_transport_security["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Strict-Transport-Security")
+            worksheet.write(row, col + 1, "HSTS")
             worksheet.write(row, col + 2, result.strict_transport_security["value"])
             row += 1
         
         if result.cross_origin_embedder_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Cross-Origin-Embedder-Policy")
+            worksheet.write(row, col + 1, "COEP")
             worksheet.write(row, col + 2, result.cross_origin_embedder_policy["value"])
             row += 1
         
         if result.cross_origin_resource_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Cross-Origin-Resource-Policy")
+            worksheet.write(row, col + 1, "CORP")
             worksheet.write(row, col + 2, result.cross_origin_resource_policy["value"])
             row += 1
         
         if result.cross_origin_opener_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Cross-Origin-Opener-Policy")
+            worksheet.write(row, col + 1, "COOP")
             worksheet.write(row, col + 2, result.cross_origin_opener_policy["value"])
             row += 1
 
         if result.feature_policy["present"] == True:
             worksheet.write(row, col, result.url)
-            worksheet.write(row, col + 1, "Feature-Policy")
+            worksheet.write(row, col + 1, "FP")
             worksheet.write(row, col + 2, result.feature_policy["value"])
             row += 1
 
@@ -287,6 +250,11 @@ def generateReport(ResponseHeaderAnalysisResultsArr, outputFile):
             worksheet.write(row, col + 1, "Expect-CT")
             worksheet.write(row, col + 2, result.expect_ct["value"])
             row += 1
+
+    # Auto-adjust column widths in the "Present Headers" sheet
+    worksheet.set_column(0, 0, 20)
+    worksheet.set_column(1, 1, 30)
+    worksheet.set_column(2, 2, 40)
 
     workbook.close()
 
